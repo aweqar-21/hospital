@@ -1,0 +1,51 @@
+# ===========================================
+# 意图规则配置（基于规则匹配时使用）
+# ===========================================
+
+intents:
+  - name: greet
+    description: 问候
+    examples:
+      - 你好
+      - 嗨
+      - 早上好
+      - 晚上好
+    priority: 1
+
+  - name: farewell
+    description: 告别
+    examples:
+      - 再见
+      - 拜拜
+      - 回头见
+    priority: 1
+
+  - name: ask_capability
+    description: 询问能力
+    examples:
+      - 你能做什么
+      - 你有什么功能
+      - 你会什么
+    priority: 2
+
+  - name: knowledge_qa
+    description: 知识问答
+    examples:
+      - 什么是
+      - 如何
+      - 怎么样
+      - 为什么
+    priority: 3
+
+  - name: task_query
+    description: 任务型查询
+    examples:
+      - 帮我查一下
+      - 请处理
+      - 帮我做
+    priority: 3
+
+  - name: chitchat
+    description: 闲聊
+    examples: []
+    priority: 99  # 最低优先级兜底

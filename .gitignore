@@ -1,0 +1,31 @@
+#/pom.xml
+/src/main/resources/application.yml
+/src/main/resources/db.properties
+/src/main/resources/config/MybatisGeneratorConfig.xml
+.idea
+.worktrees/
+
+# Build output
+/target/
+/runtime/
+
+# Python caches and generated artifacts
+**/__pycache__/
+**/*.py[cod]
+**/*.egg-info/
+**/.pytest_cache/
+
+# Environment files (keep templates)
+**/.env
+!**/.env.example
+
+# Local Claude settings may contain machine-specific paths and permissions
+**/.claude/settings.local.json
+
+# Chatbot service local state
+/chatbot-service/.venv/
+/chatbot-service/venv/
+/chatbot-service/data/
+/chatbot-service/logs/
+
+

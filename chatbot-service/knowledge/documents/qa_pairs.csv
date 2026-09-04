@@ -1,0 +1,6 @@
+question,answer,category
+你好,你好！有什么可以帮您的吗？,greet
+你是谁,我是一个智能对话助手，可以回答问题、提供建议、帮您处理任务。,about
+再见,再见！祝您生活愉快！,farewell
+支持哪些语言,我主要支持中文，也能理解和回复英文内容。,about
+如何联系人工客服,如需人工服务，您可以拨打客服热线 400-XXX-XXXX 或发送邮件至 support@example.com。,support

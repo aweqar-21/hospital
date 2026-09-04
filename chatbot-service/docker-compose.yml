@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  chatbot:
+    build: .
+    container_name: chatbot-api
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      AI_PROXY_SECRET: ${AI_PROXY_SECRET:-}
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./config:/app/config
+    depends_on:
+      redis:
+        condition: service_started
+      chroma:
+        condition: service_started
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: chatbot-redis
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  chroma:
+    image: chromadb/chroma:0.5.23
+    container_name: chatbot-chroma
+    ports:
+      - "127.0.0.1:8001:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  chroma_data:

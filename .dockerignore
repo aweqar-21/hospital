@@ -1,0 +1,42 @@
+# Source-control and local worktrees
+.git
+.worktrees
+/chatbot-service/
+
+# Build outputs and IDE metadata
+target
+.idea
+.vscode
+*.iml
+
+# Local configuration (the documented template is safe to include)
+.env
+.env.*
+!.env.example
+
+# Python environments and generated files
+.venv
+venv
+env
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+*.egg-info
+
+# Runtime data, logs, and local vector/model artifacts
+data
+logs
+*.log
+vector_store
+chroma
+models
+*.onnx
+*.bin
+*.pt
+*.pth
+
+# Documentation is not needed in the Java runtime image
+doc
+docs

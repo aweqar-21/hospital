@@ -1,0 +1,97 @@
+services:
+  mysql:
+    image: mysql:8.4.3@sha256:106d5197fd8e4892980469ad42eb20f7a336bd81509aae4ee175d852f5cc4565
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-hospital}
+      MYSQL_USER: ${MYSQL_USER:-hospital}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me-local}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-change-me-local-root}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./src/main/resources/hospital.sql:/docker-entrypoint-initdb.d/hospital.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$$MYSQL_PASSWORD\" mysql --protocol=TCP -h 127.0.0.1 -u \"$$MYSQL_USER\" -D \"$$MYSQL_DATABASE\" -e \"SELECT 1\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  redis:
+    image: redis:7.4.2-alpine@sha256:02419de7eddf55aa5bcf49efb74e88fa8d931b4d77c07eff8a6b2144472b6952
+    environment:
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-change-me-local}
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD:-change-me-local}"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  chatbot:
+    build: ./chatbot-service
+    environment:
+      LLM_PROVIDER: deepseek
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${DEEPSEEK_MODEL:-deepseek-v4-flash}
+      LLM_BASE_URL: ${DEEPSEEK_BASE_URL:-https://api.deepseek.com/v1}
+      ENABLE_RAG: ${ENABLE_RAG:-false}
+      AI_PROXY_SECRET: ${AI_PROXY_SECRET:?AI_PROXY_SECRET is required}
+      MAX_HISTORY_TURNS: ${MAX_HISTORY_TURNS:-20}
+      SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-3600}
+      MAX_ACTIVE_SESSIONS: ${MAX_ACTIVE_SESSIONS:-10000}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-change-me-local}
+      DATABASE_URL: sqlite:///./data/chatbot.db
+    volumes:
+      - chatbot_data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  hospital:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      CHATBOT_BASE_URL: http://chatbot:8000
+      CHATBOT_CONNECT_TIMEOUT_MS: ${CHATBOT_CONNECT_TIMEOUT_MS:-3000}
+      CHATBOT_READ_TIMEOUT_MS: ${CHATBOT_READ_TIMEOUT_MS:-60000}
+      AI_PROXY_SECRET: ${AI_PROXY_SECRET:?AI_PROXY_SECRET is required}
+      MYSQL_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-hospital}?characterEncoding=UTF-8&useSSL=false&useUnicode=true&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      MYSQL_USERNAME: ${MYSQL_USER:-hospital}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-change-me-local}
+      REDIS_HOST: redis
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-change-me-local}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET is required}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      chatbot:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl --fail --silent http://localhost:8080/hospital/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+    restart: unless-stopped
+
+volumes:
+  mysql_data:
+  redis_data:
+  chatbot_data:
